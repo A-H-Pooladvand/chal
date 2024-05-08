@@ -8,5 +8,9 @@ RUN go mod download
 COPY . .
 RUN go build -o main .
 
-CMD ["/app/main", "serve"]
+COPY ./entrypoint.sh ./
+
+RUN chmod +x ./entrypoint.sh
+
+CMD ["/bin/sh", "-c", "/app/entrypoint.sh"]
 
