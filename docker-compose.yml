@@ -1,0 +1,39 @@
+version: "3.8"
+
+volumes:
+  db:
+
+services:
+  app:
+    container_name: app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    tty: true
+#    dns:
+#      - 178.22.122.100
+    build: .
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
+  postgres:
+    container_name: postgres
+    image: postgres:alpine
+    environment:
+      POSTGRES_USER: ${USERNAME:-root}
+      POSTGRES_PASSWORD: ${PASSWORD:-1}
+      POSTGRES_DB: app
+      PGDATA: /var/lib/postgresql/data/pgdata
+      TZ: ${TZ:-Asia/Tehran}
+    ports:
+      - "${PORT:-5432}:5432"
+    restart: unless-stopped
+    volumes:
+      - db:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready", "-d", "db_prod" ]
+      interval: 5s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
